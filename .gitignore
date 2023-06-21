@@ -1,0 +1,5 @@
+ECAL-TO-HDF5/data/
+ECAL-TO-HDF5/input_archive/
+ECAL-TO-HDF5/input_data/
+ECAL-TO-HDF5/output_data/
+ECAL-TO-HDF5/__pycache__/
