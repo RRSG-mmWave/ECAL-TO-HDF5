@@ -6,16 +6,18 @@ import json
 
 import h5py
 from ecal.measurement.hdf5 import Meas
+import glob
 
 import cv2
     
 
-def convert(path_to_input="",filename="Boson_Data"):
+def convert(expNum, index=5, path_to_input="",filename="Depth_Data"):
 
     print("CONVERTING ECAL MEASUREMENT TO HDF5:\n")
 
-    base_dir = "data/Exp 0/"
-    filename = filename + "_Exp0.hdf5"
+    # expNum = 6
+    base_dir = "data/Exp {0}/".format(expNum)
+    filename = filename + "_Exp{0}.hdf5".format(expNum)
 
     file_dict = {"NOTES_EXPR" : base_dir+"doc/description.txt",
                  "ECAL_DATA"  : base_dir+"m2s2-NUC13ANKi7/"}
@@ -44,25 +46,28 @@ def convert(path_to_input="",filename="Boson_Data"):
     measurements = Meas(ecal_folder)
 
     # Retrieve the channels in the measurement by calling measurement.channel_names
-    print("CHANNEL SELECTION: ")
-    max_length = 50
-    print("".join(["-"]*(max_length+6)))
-    index = 0
-    valid_indexs = []
-    for channel_name in  measurements.get_channel_names():
-        if not "_raw" in channel_name:
-            index +=1
-            continue
-        index_text = "Channel index: %d" % index
-        gap_length = max_length - len(channel_name) - 16
-        gap = "".join([" "]*gap_length)
-        print(channel_name,gap,"-> ", index_text )
-        valid_indexs.append(index)
-        index+=1
-    channel_name_index = int(input("\nSelect a channel to process by choosing the index: "))
-    if channel_name_index not in valid_indexs:
-        print("Invalid Index Chosen. Exiting.")
-        exit()
+    if index == None:
+        print("CHANNEL SELECTION: ")
+        max_length = 50
+        print("".join(["-"]*(max_length+6)))
+        index = 0
+        valid_indexs = []
+        for channel_name in  measurements.get_channel_names():
+            if not "_raw" in channel_name:
+                index +=1
+                continue
+            index_text = "Channel index: %d" % index
+            gap_length = max_length - len(channel_name) - 16
+            gap = "".join([" "]*gap_length)
+            print(channel_name,gap,"-> ", index_text )
+            valid_indexs.append(index)
+            index+=1
+        channel_name_index = int(input("\nSelect a channel to process by choosing the index: "))
+        if channel_name_index not in valid_indexs:
+            print("Invalid Index Chosen. Exiting.")
+            exit()
+    else:
+        channel_name_index = index
     channel_name = measurements.get_channel_names()[channel_name_index]
     print("Channel chosen: " + channel_name)
     cont = input("Continue [y/n]: ")
@@ -144,7 +149,7 @@ def convert(path_to_input="",filename="Boson_Data"):
 
         start = start + 8
         data = measurements.get_entry_data(frame_id)[start:]
-        byte_list = np.frombuffer(data,dtype=np.uint8)
+        byte_list = np.frombuffer(data,dtype=np.uint16)
         image_arr = np.reshape(byte_list,newshape=(height,width), order="C")
 
         # store data
@@ -172,7 +177,10 @@ def convert(path_to_input="",filename="Boson_Data"):
 
 
 def main():
-    convert()
+    convert(20)
+    exit()
+    for i in range(7,13):
+        convert(i)
 
 if __name__ == "__main__":
     main()

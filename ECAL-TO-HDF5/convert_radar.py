@@ -8,12 +8,13 @@ import h5py
 from ecal.measurement.hdf5 import Meas
     
 
-def convert(path_to_input="",filename="Radar_Data"):
+def convert(expNum, path_to_input="",filename="Radar_Data"):
 
     print("CONVERTING ECAL MEASUREMENT TO HDF5:\n")
 
-    base_dir = "data/Exp 7/"
-    filename = filename + "_Exp7.hdf5"
+    # expNum = 6
+    base_dir = "data/Exp {}/".format(expNum)
+    filename = filename + "_Exp{}.hdf5".format(expNum)
 
     file_dict = {"PARAM_HDF5" : "input_data/params.hdf5",
                  "PARAM_JSON" : "input_data/config.json",
@@ -107,9 +108,9 @@ def convert(path_to_input="",filename="Radar_Data"):
     # Comments
     commentGrp = out_file.create_group("Comments")
     radar=["AWR1843BOOST".encode("ascii")]
-    radarTypeDSet = commentGrp.create_dataset("radarType", shape=(len(radar),1), data=radar)    
+    radarTypeDSet = commentGrp.create_dataset("radar_type", shape=(len(radar),1), data=radar)    
     setup=[data.encode("ascii")]  
-    setupCommentsDSet = commentGrp.create_dataset("experimentSetup", shape=(len(setup),1), data=setup) 
+    setupCommentsDSet = commentGrp.create_dataset("experiment_setup", shape=(len(setup),1), data=setup) 
 
     ## Start Conversion 
     # Create a measurement (pass either a .hdf5 file or a measurement folder)
@@ -174,7 +175,10 @@ def convert(path_to_input="",filename="Radar_Data"):
     print()
 
 def main():
-    convert()
+    convert(20)
+    exit()
+    for i in range(7,13):
+        convert(i)
 
 if __name__ == "__main__":
     main()
