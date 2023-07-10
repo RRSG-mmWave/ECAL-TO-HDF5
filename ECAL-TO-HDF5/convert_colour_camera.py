@@ -3,15 +3,15 @@
 import numpy as np
 import os
 import json
-import glob
 
 import h5py
 from ecal.measurement.hdf5 import Meas
+import glob
 
 import cv2
     
 
-def convert(expNum=5, path_to_input="",filename="Infra1_Data",skip_confirmation=False):
+def convert(expNum=1, path_to_input="",filename="Color_Data",skip_confirmation=True):
 
     print("CONVERTING ECAL MEASUREMENT TO HDF5:")
     working_dir = os.path.dirname(__file__)
@@ -35,11 +35,10 @@ def convert(expNum=5, path_to_input="",filename="Infra1_Data",skip_confirmation=
         os.mkdir(os.path.join(working_dir,"output_data/"))
     except:
         pass
-    
+
     ## Load source files
     print("LOAD SOURCE FILES:")
-    working_dir = os.path.dirname(__file__)
-
+    
     # notes source 
     print("Loading experiment notes file.")
     with open(os.path.join(working_dir,path_to_input,file_dict["NOTES_EXPR"]), 'r') as file:
@@ -82,6 +81,7 @@ def convert(expNum=5, path_to_input="",filename="Infra1_Data",skip_confirmation=
             if channel_descriptor in channel_name:
                 break
             channel_name_index +=1
+
     try:
         channel_name = measurements.get_channel_names()[channel_name_index]
     except:
@@ -92,7 +92,7 @@ def convert(expNum=5, path_to_input="",filename="Infra1_Data",skip_confirmation=
         print("The channel descriptor must be present in channel name.")
         print("The channel descriptor is derived from the output filename.")
         exit()
-    
+
     print("Channel chosen: " + channel_name)
     if skip_confirmation:
         print("CONVERTING:")
@@ -130,6 +130,8 @@ def convert(expNum=5, path_to_input="",filename="Infra1_Data",skip_confirmation=
     end_frame =  measurements.get_entries_info(channel_name)[-1]["id"]
     number_of_frames = len(measurements.get_entries_info(channel_name))
     print("%d frames to convert" % number_of_frames)
+
+    # print(measurements.get_channel_type(channel_name))
 
     i = 0
     for entry_info in  measurements.get_entries_info(channel_name):
@@ -178,14 +180,15 @@ def convert(expNum=5, path_to_input="",filename="Infra1_Data",skip_confirmation=
         start = start + 8
         data = measurements.get_entry_data(frame_id)[start:]
         byte_list = np.frombuffer(data,dtype=np.uint8)
-        image_arr = np.reshape(byte_list,newshape=(height,width), order="C")
+        image_arr = np.reshape(byte_list,newshape=(height,width,3), order="C")
+        im_rgb = cv2.cvtColor(image_arr, cv2.COLOR_BGR2RGB)
 
         # store data
         frameGrp = dataGrp.create_group("Frame_%s" % (frame_number))
         timeGrp = frameGrp.create_group("timeStamps")
         timeGrp.create_dataset("nanosec" , data = nanosec, dtype = np.uint32)
-        timeGrp.create_dataset("seconds" , data = sec, dtype = np.int32)
-        frameGrp.create_dataset("frameData",data= image_arr,shape=(height,width),dtype=np.int16)
+        timeGrp.create_dataset("seconds" , data = sec, dtype = np.uint32)
+        frameGrp.create_dataset("frameData",data= im_rgb,shape=(height,width,3),dtype=np.uint8)
 
         # print progress bar
         progress_points = 50
@@ -206,8 +209,8 @@ def convert(expNum=5, path_to_input="",filename="Infra1_Data",skip_confirmation=
 
 def main():
     convert()
-    exit()
-    # for i in range(3,8):
+    # exit()
+    # for i in range(4,8):
     #     convert(i)
 
 if __name__ == "__main__":

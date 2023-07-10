@@ -9,14 +9,24 @@ from ecal.measurement.hdf5 import Meas
 
 import cv2
     
+import glob
 
-def convert(expNum, index=2,path_to_input="",filename="Boson_Data"):
+def convert(expNum, index=None, path_to_input="",filename="Boson_Data"):
 
-    print("CONVERTING ECAL MEASUREMENT TO HDF5:\n")
-    
+    print("CONVERTING ECAL MEASUREMENT TO HDF5:")
+    working_dir = os.path.dirname(__file__)
+
     # expNum = 6
-    base_dir = "data/Exp {}/".format(expNum)
-    filename = filename + "_Exp{}.hdf5".format(expNum)
+    Nutramax_data = False
+    if Nutramax_data:
+        base_dir = "ecal_data/Exp {0}/".format(expNum)
+    else:
+        # print("ecal_data/Exp{0}_*".format(expNum))
+        dirs = os.path.join(working_dir,"ecal_data/Exp{0}_**/".format(expNum))
+        base_dir = glob.glob(dirs)[0]
+        print(base_dir,end="\n\n")
+    
+    filename = filename + "_Exp{0}.hdf5".format(expNum)
 
     file_dict = {"NOTES_EXPR" : base_dir+"doc/description.txt",
                  "ECAL_DATA"  : base_dir+"m2s2-NUC13ANKi7/"}
@@ -176,7 +186,7 @@ def convert(expNum, index=2,path_to_input="",filename="Boson_Data"):
 
 
 def main():
-    convert(20)
+    convert(0)
     exit()
     for i in range(7,13):
         convert(i)

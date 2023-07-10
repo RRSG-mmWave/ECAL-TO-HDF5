@@ -6,18 +6,26 @@ import json
 
 import h5py
 from ecal.measurement.hdf5 import Meas
+import glob
     
+def convert(expNum=3, path_to_input="",filename="Radar_Data"):
 
-def convert(expNum, path_to_input="",filename="Radar_Data"):
-
-    print("CONVERTING ECAL MEASUREMENT TO HDF5:\n")
+    print("CONVERTING ECAL MEASUREMENT TO HDF5:")
+    working_dir = os.path.dirname(__file__)
 
     # expNum = 6
-    base_dir = "data/Exp {}/".format(expNum)
-    filename = filename + "_Exp{}.hdf5".format(expNum)
+    Nutramax_data = False
+    if Nutramax_data:
+        base_dir = "ecal_data/Exp {0}/".format(expNum)
+    else:
+        dirs = os.path.join(working_dir,"ecal_data/Exp{0}_**/".format(expNum))
+        base_dir = glob.glob(dirs)[0]
+        print(base_dir,end="\n\n")
+    
+    filename = filename + "_Exp{0}.hdf5".format(expNum)
 
-    file_dict = {"PARAM_HDF5" : "input_data/params.hdf5",
-                 "PARAM_JSON" : "input_data/config.json",
+    file_dict = {"PARAM_HDF5" : "other_data/params.hdf5",
+                 "PARAM_JSON" : "other_data/config.json",
                  "NOTES_EXPR" : base_dir+"doc/description.txt",
                  "ECAL_DATA"  : base_dir+"m2s2-NUC13ANKi7/"}
 
@@ -50,13 +58,13 @@ def convert(expNum, path_to_input="",filename="Radar_Data"):
         configDict = dict(zip(outer_keys,dict_per_cmd_list))
         
         # dump to json
-        out_file = open("input_data/config.json", "w")
+        out_file = open("other_data/config.json", "w")
         json.dump(configDict, out_file, indent = 6)
         out_file.close()
 
     except:
         try:
-            f = open(file_dict["PARAM_JSON"])
+            f = open(os.path.join(working_dir,file_dict["PARAM_JSON"]))
             print("Loading parameter json file.")
             configDict = json.load(f)
         except:
@@ -71,6 +79,7 @@ def convert(expNum, path_to_input="",filename="Radar_Data"):
     # data source 
     print("Loading data files.\n")
     ecal_folder = os.path.join(working_dir,path_to_input,file_dict["ECAL_DATA"])
+    print(ecal_folder)
     
     # create 
     print("CREATING OUTPUT FILE:")
@@ -118,14 +127,16 @@ def convert(expNum, path_to_input="",filename="Radar_Data"):
     measurements = Meas(ecal_folder)
 
     # Retrieve the channels in the measurement by calling measurement.channel_names
-    channel_name_index = -1
-    channel_name = measurements.get_channel_names()[channel_name_index]
-    # channel_name =" rt/radar/raw_data"
+    # channel_name_index = -1
+    # channel_name = measurements.get_channel_names()[channel_name_index]
+    # print(channel_name)
+    channel_name = "rt/radar/raw_data"
     
     # get start and end frame ids
-    start_frame =  measurements.get_entries_info(channel_name)[0]["id"]
-    end_frame =  measurements.get_entries_info(channel_name)[-1]["id"]
+    # start_frame =  measurements.get_entries_info(channel_name)[0]["id"]
+    # end_frame =  measurements.get_entries_info(channel_name)[-1]["id"]
     number_of_frames = len(measurements.get_entries_info(channel_name))
+    print(number_of_frames)
 
     i = 0
     for entry_info in  measurements.get_entries_info(channel_name):
@@ -175,9 +186,9 @@ def convert(expNum, path_to_input="",filename="Radar_Data"):
     print()
 
 def main():
-    convert(20)
-    exit()
-    for i in range(7,13):
+    # convert()
+    # exit()
+    for i in range(3,8):
         convert(i)
 
 if __name__ == "__main__":

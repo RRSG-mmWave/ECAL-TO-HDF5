@@ -11,12 +11,21 @@ import glob
 import cv2
     
 
-def convert(expNum, index=5, path_to_input="",filename="Depth_Data"):
+def convert(expNum=0, path_to_input="",filename="Depth_Data",skip_confirmation=True):
 
-    print("CONVERTING ECAL MEASUREMENT TO HDF5:\n")
+    print("CONVERTING ECAL MEASUREMENT TO HDF5:")
+    working_dir = os.path.dirname(__file__)
 
     # expNum = 6
-    base_dir = "data/Exp {0}/".format(expNum)
+    Nutramax_data = False
+    if Nutramax_data:
+        base_dir = "ecal_data/Exp {0}/".format(expNum)
+    else:
+        # print("ecal_data/Exp{0}_*".format(expNum))
+        dirs = os.path.join(working_dir,"ecal_data/Exp{0}_**/".format(expNum))
+        base_dir = glob.glob(dirs)[0]
+        print(base_dir,end="\n\n")
+    
     filename = filename + "_Exp{0}.hdf5".format(expNum)
 
     file_dict = {"NOTES_EXPR" : base_dir+"doc/description.txt",
@@ -29,8 +38,7 @@ def convert(expNum, index=5, path_to_input="",filename="Depth_Data"):
 
     ## Load source files
     print("LOAD SOURCE FILES:")
-    working_dir = os.path.dirname(__file__)
-
+    
     # notes source 
     print("Loading experiment notes file.")
     with open(os.path.join(working_dir,path_to_input,file_dict["NOTES_EXPR"]), 'r') as file:
@@ -46,7 +54,7 @@ def convert(expNum, index=5, path_to_input="",filename="Depth_Data"):
     measurements = Meas(ecal_folder)
 
     # Retrieve the channels in the measurement by calling measurement.channel_names
-    if index == None:
+    if filename == None:
         print("CHANNEL SELECTION: ")
         max_length = 50
         print("".join(["-"]*(max_length+6)))
@@ -67,16 +75,36 @@ def convert(expNum, index=5, path_to_input="",filename="Depth_Data"):
             print("Invalid Index Chosen. Exiting.")
             exit()
     else:
-        channel_name_index = index
-    channel_name = measurements.get_channel_names()[channel_name_index]
-    print("Channel chosen: " + channel_name)
-    cont = input("Continue [y/n]: ")
-    print("\n")
+        channel_name_index = 0
+        for channel_name in  measurements.get_channel_names():
+            channel_descriptor = filename.lower().split("_")[0]
+            if channel_descriptor in channel_name:
+                break
+            channel_name_index +=1
 
-    if cont == "n" or cont == "N":
+    try:
+        channel_name = measurements.get_channel_names()[channel_name_index]
+    except:
+        print("Channel not found with given descriptor: %s" % channel_descriptor)
+        print("Available Channels are: ")
+        for name in measurements.get_channel_names():
+            print(name)
+        print("The channel descriptor must be present in channel name.")
+        print("The channel descriptor is derived from the output filename.")
         exit()
-    else:
+        
+    print("Channel chosen: " + channel_name)
+    if skip_confirmation:
         print("CONVERTING:")
+        
+    else:
+        cont = input("Continue [y/n]: ")
+        print("\n")
+
+        if cont == "n" or cont == "N":
+            exit()
+        else:
+            print("CONVERTING:")
 
 
     # create 
@@ -177,9 +205,9 @@ def convert(expNum, index=5, path_to_input="",filename="Depth_Data"):
 
 
 def main():
-    convert(20)
-    exit()
-    for i in range(7,13):
+    # convert()
+    # exit()
+    for i in range(4,8):
         convert(i)
 
 if __name__ == "__main__":
