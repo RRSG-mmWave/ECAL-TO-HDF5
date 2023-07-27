@@ -11,7 +11,7 @@ from ecal.measurement.hdf5 import Meas
 import cv2
     
 
-def convert(expNum=5, path_to_input="",filename="Infra1_Data",skip_confirmation=False):
+def convert(expNum=8, path_to_input="",filename="Infra1_Data",skip_confirmation=False):
 
     print("CONVERTING ECAL MEASUREMENT TO HDF5:")
     working_dir = os.path.dirname(__file__)

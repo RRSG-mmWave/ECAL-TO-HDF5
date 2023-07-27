@@ -11,7 +11,7 @@ import glob
 import cv2
     
 
-def convert(expNum=1, path_to_input="",filename="Color_Data",skip_confirmation=True):
+def convert(expNum=8, path_to_input="",filename="Color_Data",skip_confirmation=True):
 
     print("CONVERTING ECAL MEASUREMENT TO HDF5:")
     working_dir = os.path.dirname(__file__)
