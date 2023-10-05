@@ -28,8 +28,8 @@ def convert(expNum=8, path_to_input="",filename="Color_Data",skip_confirmation=T
     
     filename = filename + "_Exp{0}.hdf5".format(expNum)
 
-    file_dict = {"NOTES_EXPR" : base_dir+"doc/description.txt",
-                 "ECAL_DATA"  : base_dir+"m2s2-NUC13ANKi7/"}
+    file_dict = {"NOTES_EXPR" : base_dir+ "doc/description.txt",
+                 "ECAL_DATA"  : base_dir+ "m2s2-NUC13ANKi7/"}
 
     try:
         os.mkdir(os.path.join(working_dir,"output_data/"))

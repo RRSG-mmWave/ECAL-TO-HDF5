@@ -1,13 +1,22 @@
+<p float="left">
+  <img src="docs/resources/ARU_logo_rectangle.png" width="600" />
+  <img src="docs/resources/rrsglogo.png" width="150" /> 
+</p>
+
 # ECAL-TO-HDF5
+
+## Author
+Nicholas Bowden - UCT MSc
+
 ## Description
 This is a repository to convert data stored in the ecal hdf5 layout to a custom hdf5 layout.\
 Current devices supported are:
 
 1. Realsense Depth - Image
 2. Realsense Infra - Image
+2. Realsense Colour - Image
 3. Flir Boson Thermal - Image
 4. Texas Instruments AWR1843BOOST FMCW Radar - Raw ADC IQ Data
-
 
 However, this code is easy to change to suit any needs required.\
 Everything in Ecal-HDF5 is stored in a byte array.\
