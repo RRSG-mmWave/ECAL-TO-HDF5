@@ -25,6 +25,9 @@ Ints and Floats have set sizes defined by the message such uint32 or float64.\
 Strings and arrays have 8 bytes before the data which store the size of associated array.\
 The code in the python scripts should show clear examples about how to use the above information to extract the data.
 
+For the radar, please check the [DCA1000-ROS2](https://github.com/RRSG-mmWave/DCA1000-ROS2/tree/m2s2) repo as the radar uses a custom ROS2
+message format. 
+
 ## Windows Installation
 ### Install Ecal
 Go to: [ecal download](https://eclipse-ecal.github.io/ecal/_download_archive/download_archive_ecal_5_11_4.html#download-archive-ecal-v5-11-4)\
