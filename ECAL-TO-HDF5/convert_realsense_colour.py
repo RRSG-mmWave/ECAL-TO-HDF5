@@ -6,18 +6,18 @@ import json
 
 import h5py
 from ecal.measurement.hdf5 import Meas
+import glob
 
 import cv2
     
-import glob
 
-def convert(expNum, index=None, path_to_input="",filename="Boson_Data"):
+def convert(expNum=8, channel_name = "rt/camera/color/image_raw"):
 
     print("CONVERTING ECAL MEASUREMENT TO HDF5:")
     working_dir = os.path.dirname(__file__)
 
     # expNum = 6
-    Nutramax_data = False
+    Nutramax_data = True
     if Nutramax_data:
         base_dir = "ecal_data/Exp {0}/".format(expNum)
     else:
@@ -26,10 +26,10 @@ def convert(expNum, index=None, path_to_input="",filename="Boson_Data"):
         base_dir = glob.glob(dirs)[0]
         print(base_dir,end="\n\n")
     
-    filename = filename + "_Exp{0}.hdf5".format(expNum)
+    filename = "RealSense_Colour_Exp{0}.hdf5".format(expNum)
 
-    file_dict = {"NOTES_EXPR" : base_dir+"doc/description.txt",
-                 "ECAL_DATA"  : base_dir+"m2s2-NUC13ANKi7/"}
+    file_dict = {"NOTES_EXPR" : base_dir+ "doc/description.txt",
+                 "ECAL_DATA"  : base_dir+ "m2s2-NUC13ANKi7/"}
 
     try:
         os.mkdir(os.path.join(working_dir,"output_data/"))
@@ -38,54 +38,20 @@ def convert(expNum, index=None, path_to_input="",filename="Boson_Data"):
 
     ## Load source files
     print("LOAD SOURCE FILES:")
-    working_dir = os.path.dirname(__file__)
-
+    
     # notes source 
     print("Loading experiment notes file.")
-    with open(os.path.join(working_dir,path_to_input,file_dict["NOTES_EXPR"]), 'r') as file:
+    with open(os.path.join(working_dir,file_dict["NOTES_EXPR"]), 'r') as file:
         data = file.read()     
 
     # data source 
     print("Loading data files.\n")
-    ecal_folder = os.path.join(working_dir,path_to_input,file_dict["ECAL_DATA"])
+    ecal_folder = os.path.join(working_dir,file_dict["ECAL_DATA"])
     
 
     ## Start Conversion 
     # Create a measurement (pass either a .hdf5 file or a measurement folder)
     measurements = Meas(ecal_folder)
-
-    # Retrieve the channels in the measurement by calling measurement.channel_names
-    if index == None:
-        print("CHANNEL SELECTION: ")
-        max_length = 50
-        print("".join(["-"]*(max_length+6)))
-        index = 0
-        valid_indexs = []
-        for channel_name in  measurements.get_channel_names():
-            if not "_raw" in channel_name:
-                index +=1
-                continue
-            index_text = "Channel index: %d" % index
-            gap_length = max_length - len(channel_name) - 16
-            gap = "".join([" "]*gap_length)
-            print(channel_name,gap,"-> ", index_text )
-            valid_indexs.append(index)
-            index+=1
-        channel_name_index = int(input("\nSelect a channel to process by choosing the index: "))
-        if channel_name_index not in valid_indexs:
-            print("Invalid Index Chosen. Exiting.")
-            exit()
-    else:
-        channel_name_index = index
-    channel_name = measurements.get_channel_names()[channel_name_index]
-    print("Channel chosen: " + channel_name)
-    cont = input("Continue [y/n]: ")
-    print("\n")
-
-    if cont == "n" or cont == "N":
-        exit()
-    else:
-        print("CONVERTING:")
 
 
     # create 
@@ -111,6 +77,8 @@ def convert(expNum, index=None, path_to_input="",filename="Boson_Data"):
     end_frame =  measurements.get_entries_info(channel_name)[-1]["id"]
     number_of_frames = len(measurements.get_entries_info(channel_name))
     print("%d frames to convert" % number_of_frames)
+
+    # print(measurements.get_channel_type(channel_name))
 
     i = 0
     for entry_info in  measurements.get_entries_info(channel_name):
@@ -159,14 +127,15 @@ def convert(expNum, index=None, path_to_input="",filename="Boson_Data"):
         start = start + 8
         data = measurements.get_entry_data(frame_id)[start:]
         byte_list = np.frombuffer(data,dtype=np.uint8)
-        image_arr = np.reshape(byte_list,newshape=(height,width), order="C")
+        image_arr = np.reshape(byte_list,newshape=(height,width,3), order="C")
+        im_rgb = cv2.cvtColor(image_arr, cv2.COLOR_BGR2RGB)
 
         # store data
         frameGrp = dataGrp.create_group("Frame_%s" % (frame_number))
         timeGrp = frameGrp.create_group("timeStamps")
         timeGrp.create_dataset("nanosec" , data = nanosec, dtype = np.uint32)
-        timeGrp.create_dataset("seconds" , data = sec, dtype = np.int32)
-        frameGrp.create_dataset("frameData",data= image_arr,shape=(height,width),dtype=np.int16)
+        timeGrp.create_dataset("seconds" , data = sec, dtype = np.uint32)
+        frameGrp.create_dataset("frameData",data= im_rgb,shape=(height,width,3),dtype=np.uint8)
 
         # print progress bar
         progress_points = 50
@@ -186,11 +155,10 @@ def convert(expNum, index=None, path_to_input="",filename="Boson_Data"):
 
 
 def main():
-    convert(0)
-    exit()
-    for i in range(7,13):
-        convert(i)
-
+    convert()
+    # exit()
+    # for i in range(4,8):
+    #     convert(i)
 
 if __name__ == "__main__":
     main()

@@ -1,0 +1,35 @@
+The point cloud data is stored in bytes. Every point in the byte array is "Point_Step" bytes long. 
+These bytes are split into the 6 Fields listed in the Field Info Group:
+Field_x -> 4 Bytes Float32, Little Endian
+Field_y -> 4 Bytes Float32, Little Endian
+Field_z -> 4 Bytes Float32, Little Endian
+Field_intensity -> 4 Bytes Float32, Little Endian
+Field_tag -> 1 Byte Uint8, Little Endian 
+Field_line -> 1 Byte Uint8, Little Endian 
+(more info on the field can be found on the Livox wiki:  
+https://livox-wiki-en.readthedocs.io/en/latest/introduction/Point_Cloud_Characteristics_and_Coordinate_System%20.html
+Under section 3.3 Point Cloud Data)
+
+Every "PCD_Frame_Group" has a "PCD_Bytes" dataset which contains the bytes.
+There will be "Width" * "Height Points totaling "RowStep"*"Height" Bytes (So Point_Step Bytes per Point).
+You could convert the bytes with the following python code once you get it out the HDF5 file:
+
+start=0
+for point in range(width*height):
+    x  = struct.unpack("<f",byte_arr[start:start+4])[0]
+    start = start+4
+
+    y  = struct.unpack("<f",byte_arr[start:start+4])[0]
+    start = start+4
+
+    z  = struct.unpack("<f",byte_arr[start:start+4])[0]
+    start = start+4
+
+    intensity = struct.unpack("<f",byte_arr[start:start+4])[0]
+    start = start+4
+
+    tag = struct.unpack("<B",byte_arr[start:start+1])[0]
+    start = start+1
+
+    line = struct.unpack("<B",byte_arr[start:start+1])[0]
+    start = start+1

@@ -1,8 +1,8 @@
-ECAL-TO-HDF5/data/
-ECAL-TO-HDF5/input_archive/
 ECAL-TO-HDF5/input_data/
 ECAL-TO-HDF5/output_data/
 ECAL-TO-HDF5/ecal_data/
-ECAL-TO-HDF5/other_data/
 
 ECAL-TO-HDF5/__pycache__/
+ECAL-TO-HDF5/convert_infra_camera.py
+ECAL-TO-HDF5/convert_polar.py
+

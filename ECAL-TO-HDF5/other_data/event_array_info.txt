@@ -1,0 +1,27 @@
+The array of events for each message is stored as a chunk of bytes. Every event in the event array is 13 Bytes long:
+First 2 Bytes (uint16) -> x (little endian)
+Next 2 Bytes  (uint16) -> y (little endian)
+Next 4 Bytes  (uint32) -> seconds (little endian)
+Next 4 Bytes  (uint32) -> nano seconds (little endian)
+Last Byte     (uint8)  -> polarity (little endian)
+
+The number of events in the array is stored in the 8 Bytes before the start of the array (little endian)
+You could convert the bytes with the following python code once you get it out the HDF5 file:
+
+start=0
+for event in range(number_of_events):
+    x  = struct.unpack("<H",byte_arr[start:start+2])[0]
+    start = start+2
+
+    y  = struct.unpack("<H",byte_arr[start:start+2])[0]
+    start = start+2
+
+    seconds  = struct.unpack("<L",byte_arr[start:start+4])[0]
+    start = start+4
+
+    nanosec = struct.unpack("<L",byte_arr[start:start+4])[0]
+    start = start+4
+
+    [polarity] = struct.unpack("<B",byte_arr[start:start+1])[0]
+    start = start+1
+

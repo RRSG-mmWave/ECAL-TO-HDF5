@@ -6,18 +6,18 @@ import json
 
 import h5py
 from ecal.measurement.hdf5 import Meas
-import glob
 
 import cv2
     
+import glob
 
-def convert(expNum=0, path_to_input="",filename="Depth_Data",skip_confirmation=True):
+def convert(expNum, channel_name="rt/boson/image_raw"):
 
     print("CONVERTING ECAL MEASUREMENT TO HDF5:")
     working_dir = os.path.dirname(__file__)
 
     # expNum = 6
-    Nutramax_data = False
+    Nutramax_data = True
     if Nutramax_data:
         base_dir = "ecal_data/Exp {0}/".format(expNum)
     else:
@@ -26,7 +26,7 @@ def convert(expNum=0, path_to_input="",filename="Depth_Data",skip_confirmation=T
         base_dir = glob.glob(dirs)[0]
         print(base_dir,end="\n\n")
     
-    filename = filename + "_Exp{0}.hdf5".format(expNum)
+    filename = "Boson_Thermal_Exp{0}.hdf5".format(expNum)
 
     file_dict = {"NOTES_EXPR" : base_dir+"doc/description.txt",
                  "ECAL_DATA"  : base_dir+"m2s2-NUC13ANKi7/"}
@@ -38,73 +38,21 @@ def convert(expNum=0, path_to_input="",filename="Depth_Data",skip_confirmation=T
 
     ## Load source files
     print("LOAD SOURCE FILES:")
-    
+    working_dir = os.path.dirname(__file__)
+
     # notes source 
     print("Loading experiment notes file.")
-    with open(os.path.join(working_dir,path_to_input,file_dict["NOTES_EXPR"]), 'r') as file:
+    with open(os.path.join(working_dir,file_dict["NOTES_EXPR"]), 'r') as file:
         data = file.read()     
 
     # data source 
     print("Loading data files.\n")
-    ecal_folder = os.path.join(working_dir,path_to_input,file_dict["ECAL_DATA"])
+    ecal_folder = os.path.join(working_dir,file_dict["ECAL_DATA"])
     
 
     ## Start Conversion 
     # Create a measurement (pass either a .hdf5 file or a measurement folder)
     measurements = Meas(ecal_folder)
-
-    # Retrieve the channels in the measurement by calling measurement.channel_names
-    if filename == None:
-        print("CHANNEL SELECTION: ")
-        max_length = 50
-        print("".join(["-"]*(max_length+6)))
-        index = 0
-        valid_indexs = []
-        for channel_name in  measurements.get_channel_names():
-            if not "_raw" in channel_name:
-                index +=1
-                continue
-            index_text = "Channel index: %d" % index
-            gap_length = max_length - len(channel_name) - 16
-            gap = "".join([" "]*gap_length)
-            print(channel_name,gap,"-> ", index_text )
-            valid_indexs.append(index)
-            index+=1
-        channel_name_index = int(input("\nSelect a channel to process by choosing the index: "))
-        if channel_name_index not in valid_indexs:
-            print("Invalid Index Chosen. Exiting.")
-            exit()
-    else:
-        channel_name_index = 0
-        for channel_name in  measurements.get_channel_names():
-            channel_descriptor = filename.lower().split("_")[0]
-            if channel_descriptor in channel_name:
-                break
-            channel_name_index +=1
-
-    try:
-        channel_name = measurements.get_channel_names()[channel_name_index]
-    except:
-        print("Channel not found with given descriptor: %s" % channel_descriptor)
-        print("Available Channels are: ")
-        for name in measurements.get_channel_names():
-            print(name)
-        print("The channel descriptor must be present in channel name.")
-        print("The channel descriptor is derived from the output filename.")
-        exit()
-        
-    print("Channel chosen: " + channel_name)
-    if skip_confirmation:
-        print("CONVERTING:")
-        
-    else:
-        cont = input("Continue [y/n]: ")
-        print("\n")
-
-        if cont == "n" or cont == "N":
-            exit()
-        else:
-            print("CONVERTING:")
 
 
     # create 
@@ -177,7 +125,7 @@ def convert(expNum=0, path_to_input="",filename="Depth_Data",skip_confirmation=T
 
         start = start + 8
         data = measurements.get_entry_data(frame_id)[start:]
-        byte_list = np.frombuffer(data,dtype=np.uint16)
+        byte_list = np.frombuffer(data,dtype=np.uint8)
         image_arr = np.reshape(byte_list,newshape=(height,width), order="C")
 
         # store data
@@ -205,10 +153,11 @@ def convert(expNum=0, path_to_input="",filename="Depth_Data",skip_confirmation=T
 
 
 def main():
-    # convert()
-    # exit()
-    for i in range(4,8):
+    convert(0)
+    exit()
+    for i in range(7,13):
         convert(i)
+
 
 if __name__ == "__main__":
     main()
