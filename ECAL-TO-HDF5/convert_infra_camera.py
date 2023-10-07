@@ -184,7 +184,7 @@ def convert(expNum=8, path_to_input="",filename="Infra1_Data",skip_confirmation=
         frameGrp = dataGrp.create_group("Frame_%s" % (frame_number))
         timeGrp = frameGrp.create_group("timeStamps")
         timeGrp.create_dataset("nanosec" , data = nanosec, dtype = np.uint32)
-        timeGrp.create_dataset("seconds" , data = sec, dtype = np.int32)
+        timeGrp.create_dataset("seconds" , data = sec, dtype = np.uint32)
         frameGrp.create_dataset("frameData",data= image_arr,shape=(height,width),dtype=np.int16)
 
         # print progress bar

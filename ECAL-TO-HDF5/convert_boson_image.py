@@ -11,26 +11,11 @@ import cv2
     
 import glob
 
-def convert(expNum, channel_name="rt/boson/image_raw"):
-
-    print("CONVERTING ECAL MEASUREMENT TO HDF5:")
-    working_dir = os.path.dirname(__file__)
-
-    # expNum = 6
-    Nutramax_data = True
-    if Nutramax_data:
-        base_dir = "ecal_data/Exp {0}/".format(expNum)
-    else:
-        # print("ecal_data/Exp{0}_*".format(expNum))
-        dirs = os.path.join(working_dir,"ecal_data/Exp{0}_**/".format(expNum))
-        base_dir = glob.glob(dirs)[0]
-        print(base_dir,end="\n\n")
+def convert(path_to_folder, group_handle, channel_name = "rt/boson/image_raw"):
     
-    filename = "Boson_Thermal_Exp{0}.hdf5".format(expNum)
-
-    file_dict = {"NOTES_EXPR" : base_dir+"doc/description.txt",
-                 "ECAL_DATA"  : base_dir+"m2s2-NUC13ANKi7/"}
-
+    print("CONVERTING ECAL BOSON MEASUREMENT TO HDF5:")
+    working_dir = os.path.dirname(__file__)
+    
     try:
         os.mkdir(os.path.join(working_dir,"output_data/"))
     except:
@@ -38,44 +23,22 @@ def convert(expNum, channel_name="rt/boson/image_raw"):
 
     ## Load source files
     print("LOAD SOURCE FILES:")
-    working_dir = os.path.dirname(__file__)
-
-    # notes source 
-    print("Loading experiment notes file.")
-    with open(os.path.join(working_dir,file_dict["NOTES_EXPR"]), 'r') as file:
-        data = file.read()     
-
-    # data source 
-    print("Loading data files.\n")
-    ecal_folder = os.path.join(working_dir,file_dict["ECAL_DATA"])
     
 
+    # data source 
+    ecal_folder = os.path.join(path_to_folder)
+    print("Done.\n")
+
+
     ## Start Conversion 
-    # Create a measurement (pass either a .hdf5 file or a measurement folder)
     measurements = Meas(ecal_folder)
 
 
-    # create 
-    print("Creating output file")
-    try:
-        out_file = h5py.File(os.path.join(working_dir,"output_data/%s"%(filename)),'x')
-    except:
-        print("An output file of that name already exists.\n")
-
     # create starting hierarchy
-    print("Storing config data.\n")
-    dataGrp = out_file.create_group("Data")
-    paramGrp = out_file.create_group("Params")
+    dataGrp = group_handle.create_group("Data")
+    paramGrp = group_handle.create_group("Parameters") 
 
-
-    # Comments
-    commentGrp = out_file.create_group("Comments")
-    setup=[data.encode("ascii")]  
-    commentGrp.create_dataset("experiment_setup", shape=(len(setup),1), data=setup) 
-            
     # get start and end frame ids
-    start_frame =  measurements.get_entries_info(channel_name)[0]["id"]
-    end_frame =  measurements.get_entries_info(channel_name)[-1]["id"]
     number_of_frames = len(measurements.get_entries_info(channel_name))
     print("%d frames to convert" % number_of_frames)
 
@@ -129,11 +92,11 @@ def convert(expNum, channel_name="rt/boson/image_raw"):
         image_arr = np.reshape(byte_list,newshape=(height,width), order="C")
 
         # store data
-        frameGrp = dataGrp.create_group("Frame_%s" % (frame_number))
-        timeGrp = frameGrp.create_group("timeStamps")
-        timeGrp.create_dataset("nanosec" , data = nanosec, dtype = np.uint32)
-        timeGrp.create_dataset("seconds" , data = sec, dtype = np.int32)
-        frameGrp.create_dataset("frameData",data= image_arr,shape=(height,width),dtype=np.int16)
+        frameGrp = dataGrp.create_group("Image_%s" % (frame_number))
+        timeGrp = frameGrp.create_group("Timestamps")
+        timeGrp.create_dataset("nano_seconds" , data = nanosec, dtype = np.uint32)
+        timeGrp.create_dataset("seconds" , data = sec, dtype = np.uint32)
+        frameGrp.create_dataset("image_data",data= image_arr,shape=(height,width),dtype=np.int16)
 
         # print progress bar
         progress_points = 50
@@ -143,11 +106,13 @@ def convert(expNum, channel_name="rt/boson/image_raw"):
     
     print("\n")
 
-    imageSizeGrp = paramGrp.create_group("image_size")
+    imageSizeGrp = paramGrp.create_group("Image_Size")
     imageSizeGrp.create_dataset("width",data=width)
     imageSizeGrp.create_dataset("height",data=height)
+    imageSizeGrp.create_dataset("number_of_channels",data=1)
 
-    encodingGrp = paramGrp.create_group("image_encoding_info")
+
+    encodingGrp = paramGrp.create_group("Image_Encoding_Info")
     encodingGrp.create_dataset("is_big_endian",data=is_big_endian)
     encodingGrp.create_dataset("row_length",data=row_length)
 

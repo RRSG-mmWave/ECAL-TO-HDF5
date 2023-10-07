@@ -174,7 +174,7 @@ def convert(expNum=3, path_to_input="",filename="Radar_Data"):
         frameGrp = dataGrp.create_group("Frame_%s" % (frame_number))
         timeGrp = frameGrp.create_group("timeStamps")
         nsecDs = timeGrp.create_dataset("nanosec" , data = nanosec, dtype = np.uint32)
-        secsDs = timeGrp.create_dataset("seconds" , data = sec, dtype = np.int32)
+        secsDs = timeGrp.create_dataset("seconds" , data = sec, dtype = np.uint32)
         frameGrp.create_dataset("frameData",data=frame,dtype=np.int16)
 
         # print progress bar
