@@ -11,26 +11,11 @@ import glob
 import cv2
     
 
-def convert(expNum=8, channel_name = "rt/livox/lidar", quick_convert = True):
+def convert( path_to_folder, group_handle, channel_name = "rt/livox/lidar"):
 
-    print("CONVERTING ECAL MEASUREMENT TO HDF5:")
+    print("CONVERTING ECAL LIDAR MEASUREMENT TO HDF5:")
     working_dir = os.path.dirname(__file__)
-
-    # expNum = 6
-    Nutramax_data = True
-    if Nutramax_data:
-        base_dir = "ecal_data/Exp {0}/".format(expNum)
-    else:
-        # print("ecal_data/Exp{0}_*".format(expNum))
-        dirs = os.path.join(working_dir,"ecal_data/Exp{0}_**/".format(expNum))
-        base_dir = glob.glob(dirs)[0]
-        print(base_dir,end="\n\n")
     
-    filename = "Livox_PointCloud_Exp{0}.hdf5".format(expNum)
-
-    file_dict = {"NOTES_EXPR" : base_dir+ "doc/description.txt",
-                 "ECAL_DATA"  : base_dir+ "m2s2-NUC13ANKi7/"}
-
     try:
         os.mkdir(os.path.join(working_dir,"output_data/"))
     except:
@@ -39,14 +24,20 @@ def convert(expNum=8, channel_name = "rt/livox/lidar", quick_convert = True):
     ## Load source files
     print("LOAD SOURCE FILES:")
     
-    # notes source 
-    print("Loading experiment notes file.")
-    with open(os.path.join(working_dir,file_dict["NOTES_EXPR"]), 'r') as file:
-        data = file.read()     
-    
+
     # data source 
-    print("Loading data files.\n")
-    ecal_folder = os.path.join(working_dir,file_dict["ECAL_DATA"])
+    ecal_folder = os.path.join(path_to_folder)
+    print("Done.\n")
+
+
+    ## Start Conversion 
+    measurements = Meas(ecal_folder)
+
+
+    # create starting hierarchy
+    dataGrp = group_handle.create_group("Data")
+    paramGrp = group_handle.create_group("Parameters")
+
 
     datatype_dict = {
         1: np.int8, 
@@ -81,31 +72,6 @@ def convert(expNum=8, channel_name = "rt/livox/lidar", quick_convert = True):
         np.float64  :"FLOAT64"
     }
     
-
-    ## Start Conversion 
-    # Create a measurement (pass either a .hdf5 file or a measurement folder)
-    measurements = Meas(ecal_folder)
-
-
-
-    # create 
-    print("Creating output file.")
-    try:
-        out_file = h5py.File(os.path.join(working_dir,"output_data/%s"%(filename)),'x')
-    except:
-        print("An output file of that name already exists.\n")
-        exit()
-
-    # create starting hierarchy
-    print("Storing LiDAR Info.\n")
-    dataGrp = out_file.create_group("Data")
-    paramGrp = out_file.create_group("Params")
-
-
-    # Comments
-    commentGrp = out_file.create_group("Comments")
-    setup=[data.encode("ascii")]  
-    commentGrp.create_dataset("experiment_setup", shape=(len(setup),1), data=setup) 
     
             
     # get start and end frame ids
@@ -181,45 +147,45 @@ def convert(expNum=8, channel_name = "rt/livox/lidar", quick_convert = True):
         
         # bytecount = 0
         # store data
-        frameGrp = dataGrp.create_group("PCD_Frame_%s" % (frame_number))
-        timeGrp = frameGrp.create_group("timeStamps")
-        timeGrp.create_dataset("nanosec" , data = nanosec, dtype = np.uint32)
+        frameGrp = dataGrp.create_group("PCD_%s" % (frame_number))
+        timeGrp = frameGrp.create_group("Timestamps")
+        timeGrp.create_dataset("nano_seconds" , data = nanosec, dtype = np.uint32)
         timeGrp.create_dataset("seconds" , data = sec, dtype = np.uint32)
-        
-        if quick_convert:
-            pcd_bytes = np.frombuffer(measurements.get_entry_data(frame_id)[start:start+data_size],dtype=np.uint8)
-            start = start+data_size
-            
-            frameGrp.create_dataset("PCD_Bytes",data=pcd_bytes,dtype=np.uint8)
 
-             # print progress bar
-            progress_points = 50
-            progress = int((frame_number)*progress_points/(number_of_frames))
-            bar = "".join([u"\u2588"]*progress + [" "]*(progress_points-progress-1))
-            print("Progress: %d%%" % ((progress+1)*100/progress_points) + " |" + str(bar) + "| "  ,end="\r") 
+        # this code only works for a point step of 18 where we are taking the first 4 fields of 6 fields to be float32 and last fields
+        # are uint8 
+        pcd_bytes = np.frombuffer(measurements.get_entry_data(frame_id)[start:start+data_size],dtype=np.uint8)
+        points_all_bytes = np.reshape(pcd_bytes,(width*height,point_step))
+        points_xyz_intensity_bytes = points_all_bytes[:,0:-2]
+        points_xyz_intensity_bytes = points_xyz_intensity_bytes.flatten()
+        point_field_list = np.frombuffer(points_xyz_intensity_bytes,dtype=np.float32)
+        points = np.reshape(point_field_list,(width*height,4)) 
+
+        start = start+data_size
         
-        else:
-            for point in range(width*height):
+        pcd_header = "\n".join([
+            "# .PCD v0.7 - Point Cloud Data file format",
+            "VERSION 0.7",
+            "FIELDS x y z intensity",
+            "SIZE 4 4 4 4",
+            "TYPE F F F F",
+            "COUNT 1 1 1 1",
+            "WIDTH 24000",
+            "HEIGHT 1",
+            "VIEWPOINT 0 0 0 1 0 0 0",
+            "POINTS 24000",
+            "DATA ascii",
+        ])
+        frameGrp.create_dataset("pcd_header",data=[pcd_header.encode("ascii")])
+        frameGrp.create_dataset("pcd_data",data=points,dtype=np.float32)
+
+            # print progress bar
+        progress_points = 50
+        progress = int((frame_number)*progress_points/(number_of_frames))
+        bar = "".join([u"\u2588"]*progress + [" "]*(progress_points-progress-1))
+        print("Progress: %d%%" % ((progress+1)*100/progress_points) + " |" + str(bar) + "| "  ,end="\r") 
+    
                 
-                pointGrp = frameGrp.create_group("Point_%d" % point)
-                
-                for field in description_of_fields:
-                    field_name = field[0]
-                    offset = field[1]
-                    count = field[3]
-                    size = field[2](count).itemsize
-
-                    data  = struct.unpack(unpack_dict[field[2]],measurements.get_entry_data(frame_id)[start+offset:start+offset+size])[0]
-                    pointGrp.create_dataset(field_name,data=data,dtype=field[2])
-
-                start=start+point_step
-
-                # print progress bar
-                progress_points = 50
-                progress = int((frame_number)*progress_points/(number_of_frames))
-                bar = "".join([u"\u2588"]*progress + [" "]*(progress_points-progress-1))
-                print("Frame Progess %.2f%% | " % (point*100/(width*height)),"Total Progress: %d%%" % ((progress+1)*100/progress_points) + " |" + str(bar) + "| "  ,end="\r") 
-        
     print("\n")
             
 
@@ -227,43 +193,9 @@ def convert(expNum=8, channel_name = "rt/livox/lidar", quick_convert = True):
     start = start + 1
 
 
-    paramGrp.create_dataset("Point_Step",data=point_step)
-    paramGrp.create_dataset("Height",data=height)
-    paramGrp.create_dataset("Width",data=width)
-    paramGrp.create_dataset("Row_Step",data=row_step)    
+    paramGrp.create_dataset("point_step",data=point_step)
+    paramGrp.create_dataset("height",data=height)
+    paramGrp.create_dataset("width",data=width)
+    paramGrp.create_dataset("row_step",data=row_step)    
     paramGrp.create_dataset("is_big_endian",data=is_big_endian)
-
-    if quick_convert:
         
-        fieldInfoGrp = paramGrp.create_group("Field_Info")
-        for field in description_of_fields:
-            field_name = field[0]
-            fieldGrp = fieldInfoGrp.create_group("Field_%s" % field_name)
-            
-            offset = field[1]
-            fieldGrp.create_dataset("Offset_From_Start",data=offset)
-
-            count = field[3]
-            fieldGrp.create_dataset("Number_Of_Points",data=count)
-
-            fieldGrp.create_dataset("Field_Data_Type",data=[type_description_dict[field[2]].encode("ascii")])
-
-            size = field[2](count).itemsize
-            fieldGrp.create_dataset("Field_Size_In_Bytes",data=size)
-
-        with open(os.path.join(working_dir,"other_data/lidar_field_info.txt"), 'r') as file:
-            explanation = [file.read().encode("ascii") ]    
-        paramGrp.create_dataset("Field_Info_Explanation",data=explanation)
-
-    
-
-
-
-def main():
-    convert(3)
-    # exit()
-    # for i in range(4,8):
-    #     convert(i)
-
-if __name__ == "__main__":
-    main()

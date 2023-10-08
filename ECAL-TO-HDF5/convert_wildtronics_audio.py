@@ -13,7 +13,7 @@ import cv2
 
 def convert( path_to_folder, group_handle, channel_name = "rt/audio/audio"):
 
-    print("CONVERTING ECAL MEASUREMENT TO HDF5:")
+    print("CONVERTING ECAL AUDIO MEASUREMENT TO HDF5:")
     working_dir = os.path.dirname(__file__)
     
     try:
@@ -73,7 +73,7 @@ def convert( path_to_folder, group_handle, channel_name = "rt/audio/audio"):
         audio_chunk = np.frombuffer(measurements.get_entry_data(frame_id)[start:start+array_size],dtype=np.uint8)
 
         chunkGrp = dataGrp.create_group("Audio_Chunk_%s" % (frame_number))
-        timeGrp = chunkGrp.create_group("TimeStamps")
+        timeGrp = chunkGrp.create_group("Timestamps")
         timeGrp.create_dataset("nano_seconds" , data = nanosec, dtype = np.uint32)
         timeGrp.create_dataset("seconds" , data = sec, dtype = np.uint32)
         chunkGrp.create_dataset("audio_bytes",data=audio_chunk,dtype=np.uint8)
