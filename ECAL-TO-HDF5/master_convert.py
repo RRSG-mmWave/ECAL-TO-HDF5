@@ -37,7 +37,6 @@ def main():
     working_dir = os.path.dirname(__file__)
     base_dir = "ecal_data"
     measurement_name = "Exp 3"
-    filename = "m2s2_cheetah_run3.hdf5"
     ecal_folder = os.path.join(working_dir,base_dir,measurement_name,"m2s2-NUC13ANKi7/")
     
     # notes source 
@@ -46,6 +45,7 @@ def main():
         data = file.read()  
 
     print("Creating output file")
+    filename = "m2s2_cheetah_run3.hdf5"
     try:
         out_file = h5py.File(os.path.join(working_dir,"output_data/%s"%(filename)),'x')
     except:
