@@ -8,7 +8,6 @@ import h5py
 from ecal.measurement.hdf5 import Meas
 import glob
 
-import cv2
     
 
 def convert( path_to_folder, group_handle, channel_name = "rt/audio/audio"):

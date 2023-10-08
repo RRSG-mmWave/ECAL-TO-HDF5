@@ -8,6 +8,28 @@
 ## Author
 Nicholas Bowden - UCT MSc
 
+## Dependencies
+# Python3.8
+This repository was tested on python 3.8
+
+# H5PY
+Python Library for reading from and writing to HDF5 files.
+```
+pip install h5py
+```
+
+# Numpy
+Python's standard computation library.
+```
+pip install numpy
+```
+
+# OpenCV
+Python's main computer vision library.
+```
+pip install opencv-python
+```
+
 ## Description
 This is a repository to convert data stored in the ecal hdf5 layout to a custom hdf5 layout.\
 Current devices supported are:
