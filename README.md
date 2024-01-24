@@ -42,6 +42,7 @@ Current devices supported are:
 6. Wildstronics Audio - Wave
 7. DVExplorer Event Camera - Image and Event Array
 8. Ximea Highspeed RGB Camera - Image
+9. Polar H10 - IMU and Heart rate
 
 
 However, this code is easy to change to suit any needs required.\
@@ -101,125 +102,32 @@ within your working directory:
 │   ├── your outputs will be placed here
 ```
 
-## HDF5 Output
-```
-Root
-├── Comments
-│   ├── experiment_setup
-│   ├── sensor_list
-│
-├── Sensors
-│   ├── Realsense_Colour
-│       ├── Parametres
-│           ├── ...
-│       ├── Data
-│           ├── Image_1
-│                ....
-│           ├── Image_N
-│               ├── image_data
-│               ├── Timestamps
-│                   ├── seconds
-│                   ├── nano_seconds
-│
-│   ├── Realsense_Depth
-│       ├── Parametres
-│           ├── ...
-│       ├── Data
-│           ├── Image_1
-│                ....
-│           ├── Image_N
-│               ├── image_data
-│               ├── Timestamps
-│                   ├── seconds
-│                   ├── nano_seconds
-│
-│   ├── Ximea_Raw
-│       ├── Parametres
-│           ├── ...
-│       ├── Data
-│           ├── Image_1
-│                ....
-│           ├── Image_N
-│               ├── image_data
-│               ├── Timestamps
-│                   ├── seconds
-│                   ├── nano_seconds
-│
-│   ├── Boson_Thermal
-│       ├── Parametres
-│           ├── ...
-│       ├── Data
-│           ├── Image_1
-│                ....
-│           ├── Image_N
-│               ├── image_data
-│               ├── Timestamps
-│                   ├── seconds
-│                   ├── nano_seconds
-│
-│   ├── Wildtronics_Audio
-│       ├── Parametres
-│           ├── ...
-│       ├── Data
-│           ├── Audio_Chunk_1
-│                ....
-│           ├── Audio_Chunk_N
-│               ├── audio_bytes
-│               ├── Timestamps
-│                   ├── seconds
-│                   ├── nano_seconds
-│
-│   ├── TI_Radar
-│       ├── Parametres
-│           ├── ...
-│       ├── Data
-│           ├── Frame_1
-│                ....
-│           ├── Frame_N
-│               ├── frame_data
-│               ├── Timestamps
-│                   ├── seconds
-│                   ├── nano_seconds
-│
-│   ├── Livox_Lidar
-│       ├── Parametres
-│           ├── ...
-│       ├── Data
-│           ├── PCD_1
-│                ....
-│           ├── PCD_N
-│               ├── pcd_header
-│               ├── pcd_data
-│               ├── Timestamps
-│                   ├── seconds
-│                   ├── nano_seconds
-│
-│   ├── DVExplorer_Event
-│       ├── Event_Images
-│           ├── Parametres
-│           ├── ...
-│       ├── Data
-│           ├── Image_1
-│                ....
-│           ├── Image_N
-│               ├── image_data
-│               ├── Timestamps
-│                   ├── seconds
-│                   ├── nano_seconds
-|
-│       ├── Event_Arrays
-│           ├── Parametres
-│           ├── ...
-│       ├── Data
-│           ├── Array_1
-│                ....
-│           ├── Array_N
-│               ├── events_xy
-│               ├── events_seconds
-│               ├── events_nano_seconds
-│               ├── events_polarity
-│               ├── number_of_events
-│               ├── Timestamps
-│                   ├── seconds
-│                   ├── nano_seconds
+### Notes
+If you want separate files per data-set you can just enable one sensor at a time in the mapping.    
+The radar config and parameters must be provided as a json called config.json of the correct format in folder other_data.   
+The only parts of the master convert that need to be changed are at the top of the main function:
+```python 
+    
+    # Specify data path and output names
+    base_dir = "ecal_data" # the folder with your ecal data
+    measurement_name = "Exp 3"
+    host_username = "m2s2-NUC13ANKi7/" # it found as a sub dir of ecal meas folder 
+    filename = "m2s2_cheetah_run3.hdf5"
+    
+    # use this map to enable sensors 
+    sensor_list = {
+        "Realsense_Colour"  :   False,
+        "Realsense_Depth"   :   False,
+        "Ximea_Raw"         :   False,
+        "Boson_Thermal"     :   False,
+        "Wildtronics_Audio" :   False,
+        "TI_Radar"          :   True,
+        "Livox_Lidar"       :   False,
+        "DVExplorer_Event"  :   False
+    }
+
+    # Only thing that might need to be changed after this point is channel name used 
+    # which is an argument to each convert function. Check default against channels 
+    # listed in terminal when this script is run.
+
 ```
