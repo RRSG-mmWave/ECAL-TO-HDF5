@@ -33,7 +33,7 @@ def sort_data(frame_data,nSamples,nChirps,nVChannels,real_or_complex):
 
     return data_cube
     
-def convert(path_to_folder, path_config_json, group_handle,channel_name = "rt/radar/raw_data"):
+def convert(path_to_folder, path_config_json, group_handle,channel_name = "rt/radar_data"):
 
     print("CONVERTING ECAL RADAR MEASUREMENT TO HDF5:")
     working_dir = os.path.dirname(__file__)
@@ -166,4 +166,4 @@ def convert(path_to_folder, path_config_json, group_handle,channel_name = "rt/ra
         bar = "".join([u"\u2588"]*progress + [" "]*(progress_points-progress-1))
         print("Progress: %d%%" % ((progress+1)*100/progress_points) + " |" + str(bar) + "| "  ,end="\r") 
     
-    print("\n")
+    print("\n\n")

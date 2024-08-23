@@ -11,7 +11,7 @@ import glob
 import cv2
     
 
-def convert(path_to_folder, group_handle, channel_name = "rt/camera/color/image_raw"):
+def convert(path_to_folder, group_handle, channel_name = "rt/camera/camera/color/image_raw"):
     
     print("CONVERTING ECAL REALSENSE COLOUR MEASUREMENT TO HDF5:")
     working_dir = os.path.dirname(__file__)
@@ -107,7 +107,7 @@ def convert(path_to_folder, group_handle, channel_name = "rt/camera/color/image_
         bar = "".join([u"\u2588"]*progress + [" "]*(progress_points-progress-1))
         print("Progress: %d%%" % ((progress+1)*100/progress_points) + " |" + str(bar) + "| "  ,end="\r") 
     
-    print("\n")
+    print("\n\n")
 
     imageSizeGrp = paramGrp.create_group("Image_Size")
     imageSizeGrp.create_dataset("width",data=width)

@@ -21,15 +21,15 @@
    "profileCfg": {
       "profileId"        : 0, 
       "startFreq"        : 77,        
-      "idleTime"         : 10,         
-      "adcStartTime"     : 7,         
-      "rampEndTime"      : 40,        
+      "idleTime"         : 5,         
+      "adcStartTime"     : 5.8,         
+      "rampEndTime"      : 18.1,        
       "txOutPower"       : 0,         
       "txPhaseShifter"   : 0, 
-      "freqSlopeConst"   : 80,      
+      "freqSlopeConst"   : 65.81,      
       "txStartTime"      : 1,         
-      "numAdcSamples"    : 128,       
-      "digOutSampleRate" : 12000,       
+      "numAdcSamples"    : 64,       
+      "digOutSampleRate" : 5488,       
       "hpfCornerFreq1"   : 0,         
       "hpfCornerFreq2"   : 0,         
       "rxGain"           : 30
@@ -52,7 +52,7 @@
       "freqSlopeVar": 0,
       "idleTimeVar": 0,
       "ADCStartTimeVar": 0,
-      "chirpAntennaEnMask": 4
+      "chirpAntennaEnMask": 2
    },
    "chirpCfg_2": {
       "chirpStartIndex": 2,
@@ -62,14 +62,14 @@
       "freqSlopeVar": 0,
       "idleTimeVar": 0,
       "ADCStartTimeVar": 0,
-      "chirpAntennaEnMask": 2
+      "chirpAntennaEnMask": 4
    },
    "frameCfg": {
       "chirpStartIndex": 0,
       "chirpEndIndex": 2,
-      "numChirps": 128,
+      "numChirps": 203,
       "numFrames": 0,
-      "framePeriod": 50,
+      "framePeriod": 33.33,
       "triggerSelect": 1,
       "frameTriggerDelay": 0
    },

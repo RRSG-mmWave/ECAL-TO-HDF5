@@ -21,15 +21,15 @@
     "profileCfg": {
        "profileId"        : 0, 
        "startFreq"        : 77,        
-       "idleTime"         : 10,         
-       "adcStartTime"     : 7,         
-       "rampEndTime"      : 40,        
+       "idleTime"         : 7,         
+       "adcStartTime"     : 7.9,         
+       "rampEndTime"      : 40.23,        
        "txOutPower"       : 0,         
        "txPhaseShifter"   : 0, 
-       "freqSlopeConst"   : 80,      
+       "freqSlopeConst"   : 95.06,      
        "txStartTime"      : 1,         
-       "numAdcSamples"    : 128,       
-       "digOutSampleRate" : 12000,       
+       "numAdcSamples"    : 94,       
+       "digOutSampleRate" : 3000,       
        "hpfCornerFreq1"   : 0,         
        "hpfCornerFreq2"   : 0,         
        "rxGain"           : 30
@@ -67,9 +67,9 @@
     "frameCfg": {
        "chirpStartIndex": 0,
        "chirpEndIndex": 2,
-       "numChirps": 128,
+       "numChirps": 25,
        "numFrames": 0,
-       "framePeriod": 50,
+       "framePeriod": 100,
        "triggerSelect": 1,
        "frameTriggerDelay": 0
     },
